@@ -19,19 +19,6 @@ Notion database  ->  GitHub Action (every 5 min)  ->  data.json  ->  the map emb
 | `scripts/build_data.py` | Queries the Notion API and writes `data.json`. Standard library only. |
 | `.github/workflows/update-map.yml` | Runs the script on a schedule, on demand, and when the pipeline changes. Commits `data.json` only when it differs. |
 
-## Setup (one time)
-
-1. **Create a Notion integration.** Notion -> Settings -> Connections -> Develop or manage
-   integrations -> New integration (internal). Copy the *Internal Integration Secret*.
-2. **Share the database with it.** Open the Destinations database -> `...` menu -> Connections
-   -> add the integration. Without this the API returns 404.
-3. **Add the secret here.** Repository -> Settings -> Secrets and variables -> Actions ->
-   New repository secret, named `NOTION_TOKEN`.
-4. **Make the repository public**, so the map in Notion can fetch `data.json` over HTTPS.
-5. **Run it once.** Actions tab -> *Update travel map data* -> Run workflow.
-
-The database id is baked into the workflow. To point this at a different database, add a
-repository *variable* named `NOTION_DATABASE_ID`.
 
 ## How a destination gets onto the map
 
