@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-09-05T22:20:30Z",
+ "generatedAt": "2026-09-05T22:25:00Z",
  "source": "notion",
  "unmapped": [],
  "destinations": [
@@ -12,7 +12,6 @@
   { "name": "New Zealand", "status": "Want to go", "budget": "$$$$", "c": [554], "continent": "Australia" },
   { "name": "Singapore", "status": "Want to go", "budget": "$$$", "c": [702], "continent": "Asia" },
   { "name": "Dubrovnik & Split", "status": "Want to go", "budget": "$$", "c": [191], "continent": "Europe" },
-  { "name": "Vienna (pipeline test)", "status": "Want to go", "c": [40], "continent": "Europe" },
   { "name": "Budapest & Prague", "status": "Want to go", "budget": "$$", "c": [348, 203], "continent": "Europe" },
   { "name": "Petra, Jordan", "status": "Want to go", "budget": "$$", "c": [400], "continent": "Asia" },
   { "name": "Patagonia", "status": "Want to go", "budget": "$$$$", "c": [32, 152], "continent": "South America" },
