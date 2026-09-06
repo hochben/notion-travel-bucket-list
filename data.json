@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-09-06T09:48:21Z",
+ "generatedAt": "2026-09-06T09:58:15Z",
  "source": "notion",
  "unmapped": [],
  "destinations": [
@@ -32,9 +32,8 @@
   { "name": "Patagonia", "status": "Want to go", "budget": "$$$$", "c": [32, 152], "continent": "South America" },
   { "name": "Namibia", "status": "Want to go", "budget": "$$$$", "c": [516], "continent": "Africa" },
   { "name": "Dolomites", "status": "Want to go", "budget": "$$", "c": [380], "continent": "Europe" },
-  { "name": "Chicago", "status": "Want to go", "budget": "$$$", "c": [840], "continent": "North & Central America" },
   { "name": "Hong Kong", "status": "Want to go", "budget": "$$$", "c": [344], "continent": "Asia" },
-  { "name": "South Korea", "status": "Want to go", "budget": "$$$$", "c": [410], "continent": "Asia" },
+  { "name": "South Korea", "status": "Want to go", "budget": "$$$", "c": [410], "continent": "Asia" },
   { "name": "Japan", "status": "Want to go", "budget": "$$$$", "c": [392], "continent": "Asia" },
   { "name": "New York City", "status": "Want to go", "budget": "$$$", "c": [840], "continent": "North & Central America" },
   { "name": "Iceland", "status": "Want to go", "budget": "$$$", "c": [352], "continent": "Europe" },
