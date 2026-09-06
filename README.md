@@ -79,7 +79,7 @@ to *Want to go*, which is when it appears. The approver agent handles that revie
 
 A map does not understand "Backpack South East Asia". It understands country shapes, and
 those shapes are keyed by **ISO 3166-1 numeric codes** — an international standard where every
-country has a number. Germany is 276, Japan is 392, Italy is 380.
+country has a number.
 
 So every destination needs at least one code. They come from two places, in order:
 
