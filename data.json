@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-09-06T18:47:31Z",
+ "generatedAt": "2026-09-06T18:53:01Z",
  "source": "notion",
  "unmapped": [],
  "destinations": [
@@ -31,6 +31,6 @@
   { "name": "Austria", "status": "Visited", "c": [40] },
   { "name": "Istanbul", "status": "Want to go", "budget": "$$", "c": [792], "continent": "Europe" },
   { "name": "Liechtenstein", "status": "Visited", "c": [438] },
-  { "name": "Belgium", "status": "Want to go", "budget": "$", "c": [56], "continent": "Europe" }
+  { "name": "Belgium", "status": "In Planning", "budget": "$", "c": [56], "continent": "Europe" }
  ]
 }
