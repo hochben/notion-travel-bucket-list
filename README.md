@@ -57,20 +57,26 @@ Its standing instruction is, roughly: *read every destination in the database, w
 countries each one covers, and write the result to `data.json` in this repository — but only
 if the result would actually be different from what is already there.*
 
-It wakes up when:
+It wakes up when, and only when, something changes:
 
 | Event | Why |
 | --- | --- |
 | A destination is created | New pin on the map |
-| Status, Budget or Continent changes | The colour or the tooltip changes |
+| Name, Status, Budget, Continent or Map countries changes | The colour, the shape or the tooltip changes |
 | A destination is deleted | The country should stop being coloured |
-| Once an hour, regardless | Safety net — see below |
 
-That last one matters more than it looks. Event-driven systems miss events; it is a question
-of when, not if. Because every run rewrites the **complete** list rather than patching the
-difference, a missed event repairs itself at the top of the next hour without anyone
-noticing. This is the same reasoning behind "desired state" tools like Terraform or
-Kubernetes: describing the end state is more robust than describing the change.
+There is deliberately **no scheduled run**. An agent run is not free, and a timer that fires
+whether or not anything changed spends budget to discover that nothing happened. Editing a
+row is the only thing that costs anything.
+
+The safety net is structural rather than scheduled. Because every run rewrites the
+**complete** list rather than patching the difference, a missed event does not accumulate:
+the next change of any kind puts the whole file right again. This is the same reasoning
+behind "desired state" tools like Terraform or Kubernetes — describing the end state is more
+robust than describing the change.
+
+Rapid edits are collapsed into a single run (a short debounce), so filling in four properties
+on a new row is one sync, not four.
 
 End to end, a change in Notion reaches the map in roughly 30 to 60 seconds. Most of that is
 the agent thinking, not the network.
@@ -166,6 +172,10 @@ deleted. If you find references to `NOTION_TOKEN` anywhere, they are stale.
 credential to anyone who views the page. The static-file-in-the-middle approach means the
 map only ever reads a public file containing nothing sensitive.
 
+**An hourly sync as a safety net.** It caught nothing that the next real edit would not have
+caught anyway, and it spent budget every hour to find that out. Removed in favour of purely
+change-driven runs.
+
 ---
 
 ## Troubleshooting
@@ -183,7 +193,8 @@ https://raw.githubusercontent.com/benhoch-dev/notion-travel-bucket-list/main/dat
 **A change in Notion has not appeared yet.**
 `raw.githubusercontent.com` serves through a cache that can hold a file for a few minutes.
 The map adds a cache-busting parameter to each request, but the underlying cache still wins
-occasionally. Waiting is the fix; the hourly run is the backstop.
+occasionally. Waiting is the fix. If it still has not appeared, touch any watched property on
+any row — every run rewrites the whole file, so one edit repairs everything.
 
 **The map loads but no countries are drawn, with a "couldn't load the map geometry" notice.**
 The country outlines come from a public map library on a CDN, separately from your data. That
