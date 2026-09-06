@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Travel Bucket List — World Map</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #ffffff;
+    color: #37352f;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app { max-width: 1100px; margin: 0 auto; padding: 18px 16px 22px; }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .stat {
+    flex: 1 1 120px; background: #f7f6f3; border: 1px solid #ebeae7;
+    border-radius: 10px; padding: 10px 12px;
+  }
+  .stat .num { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.1; }
+  .stat .lbl { font-size: 11px; color: #787066; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 6px 11px; border-radius: 999px; cursor: pointer;
+    background: #f7f6f3; border: 1px solid #ebeae7;
+    font-size: 12.5px; font-weight: 500; color: #37352f;
+    transition: background .15s, border-color .15s, opacity .15s;
+    user-select: none;
+  }
+  .chip:hover { background: #efeee9; }
+  .chip .dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+  .chip .cnt { color: #8c857a; font-variant-numeric: tabular-nums; }
+  .chip.off { opacity: .4; }
+
+  .mapwrap {
+    position: relative; border: 1px solid #ebeae7; border-radius: 12px;
+    background: #fbfaf9; overflow: hidden;
+  }
+  svg { display: block; width: 100%; height: auto; touch-action: none; cursor: grab; }
+  svg.dragging { cursor: grabbing; }
+
+  .country { fill: #f0eeeb; stroke: #ffffff; stroke-width: .4; transition: fill .15s; }
+  .country.has { cursor: pointer; }
+  .country.dim { fill: #eeecE8 !important; opacity: .45; }
+  .country.sel { stroke: #37352f; stroke-width: 1.1; }
+  .country.vis { stroke: #0d6b37; stroke-width: 1; }
+  .marker { stroke: #ffffff; stroke-width: 1.2; cursor: pointer; }
+  .graticule { fill: none; stroke: #e4e2dd; stroke-width: .35; }
+  .sphere { fill: #f4f6f8; stroke: #e4e2dd; stroke-width: .6; }
+
+  .tip {
+    position: absolute; pointer-events: none; z-index: 5;
+    background: #ffffff; border: 1px solid #e3e1dc;
+    box-shadow: 0 6px 18px rgba(15,15,15,.10);
+    border-radius: 9px; padding: 9px 11px; font-size: 12.5px;
+    max-width: 260px; opacity: 0; transform: translate(-50%, -114%);
+    transition: opacity .12s;
+  }
+  .tip.on { opacity: 1; }
+  .tip .cname { font-weight: 650; margin-bottom: 5px; }
+  .tip .row { display: flex; align-items: baseline; gap: 6px; margin-top: 3px; line-height: 1.35; }
+  .tip .sq { width: 8px; height: 8px; border-radius: 2px; flex: none; margin-top: 4px; }
+  .tip .bud { color: #8c857a; font-size: 11.5px; }
+  .tip .none { color: #8c857a; }
+
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .hint { font-size: 11.5px; color: #97908a; }
+  .btns { display: flex; gap: 6px; }
+  .btn {
+    font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 7px;
+    border: 1px solid #e3e1dc; background: #fff; color: #37352f; cursor: pointer;
+  }
+  .btn:hover { background: #f7f6f3; }
+
+  .msg { padding: 26px 20px; text-align: center; font-size: 13.5px; color: #787066; line-height: 1.5; }
+  .msg b { color: #37352f; }
+
+  .panel { margin-top: 12px; border: 1px solid #ebeae7; border-radius: 10px; padding: 12px 14px; background: #f7f6f3; display: none; }
+  .panel.on { display: block; }
+  .panel h3 { margin: 0 0 7px; font-size: 14px; }
+  .panel ul { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.6; }
+  .panel .close { float: right; cursor: pointer; color: #8c857a; font-size: 12px; }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #191919; color: #d4d4d4; }
+    .stat, .chip, .panel { background: #252525; border-color: #333; color: #d4d4d4; }
+    .chip:hover { background: #2f2f2f; }
+    .mapwrap { background: #1f1f1f; border-color: #333; }
+    .country { fill: #3a3a38; stroke: #191919; }
+    .sphere { fill: #202b33; stroke: #333; }
+    .graticule { stroke: #2e2e2e; }
+    .tip { background: #252525; border-color: #383838; color: #d4d4d4; }
+    .btn { background: #252525; border-color: #383838; color: #d4d4d4; }
+    .country.sel { stroke: #fff; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="stats" id="stats"></div>
+  <div class="legend" id="legend"></div>
+  <div class="mapwrap" id="mapwrap">
+    <div class="msg" id="msg">Loading world map…</div>
+    <div class="tip" id="tip"></div>
+  </div>
+  <div class="bar">
+    <div class="hint">Scroll to zoom · drag to pan · click a country for details · click a legend chip to filter<span id="stamp" style="opacity:.7"></span></div>
+    <div class="btns">
+      <button class="btn" id="reset">Reset view</button>
+    </div>
+  </div>
+  <div class="panel" id="panel"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Data: destinations mapped to ISO 3166-1 numeric country codes ---------- */
+  var DESTS = [];
+
+
+
+  /* Places the 110m geometry omits or renders sub-pixel: draw a dot instead.
+     Hong Kong (344) has no separate outline at this scale — it is drawn inside
+     China — so a dot keeps it distinct from the Great Wall trip. */
+  var DOTS = { 344: [114.17, 22.32], 462: [73.2, 3.2], 702: [103.85, 1.35] };
+  var DOT_NAMES = { 344: "Hong Kong", 462: "Maldives", 702: "Singapore" };
+
+  var STATUSES = [
+    { key: "Visited",     color: "#159a52", label: "Been there" },
+    { key: "In Planning", color: "#6d9fd1", label: "In planning" },
+    { key: "Want to go",  color: "#e0d4bb", label: "Want to go" }
+  ];
+  var RANK = { "Visited": 3, "In Planning": 2, "Want to go": 1 };
+  var COLOR = {};
+  STATUSES.forEach(function (s) { COLOR[s.key] = s.color; });
+
+  /* country code -> { dests: [], status: winning status }.
+     Rebuilt every time fresh data arrives from data.json. */
+  var BY_COUNTRY = {};
+  function indexData() {
+    BY_COUNTRY = {};
+    DESTS.forEach(function (d) {
+      (d.c || []).forEach(function (code) {
+        if (!BY_COUNTRY[code]) BY_COUNTRY[code] = { dests: [], status: null };
+        var e = BY_COUNTRY[code];
+        e.dests.push(d);
+        if (!e.status || RANK[d.status] > RANK[e.status]) e.status = d.status;
+      });
+    });
+  }
+
+  var active = {};
+  STATUSES.forEach(function (s) { active[s.key] = true; });
+  var selected = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var msg = $("msg"), tip = $("tip"), mapwrap = $("mapwrap"), panel = $("panel");
+
+  /* ---------- Stats ---------- */
+  function renderStats() {
+    var counts = {};
+    STATUSES.forEach(function (s) { counts[s.key] = 0; });
+    Object.keys(BY_COUNTRY).forEach(function (code) { counts[BY_COUNTRY[code].status]++; });
+    var totalCountries = Object.keys(BY_COUNTRY).length;
+    var cells = [
+      { num: counts["Visited"], lbl: "Countries visited", accent: "#159a52" },
+      { num: totalCountries, lbl: "Countries on the map" },
+      { num: DESTS.length, lbl: "Destinations" },
+      { num: (totalCountries / 195 * 100).toFixed(1) + "%", lbl: "Of the world" }
+    ];
+    $("stats").innerHTML = cells.map(function (c) {
+      return '<div class="stat"><div class="num"' + (c.accent ? ' style="color:' + c.accent + '"' : "") + ">" + c.num + '</div><div class="lbl">' + c.lbl + "</div></div>";
+    }).join("");
+  }
+
+  function renderLegend() {
+    var counts = {};
+    STATUSES.forEach(function (s) { counts[s.key] = 0; });
+    Object.keys(BY_COUNTRY).forEach(function (code) { counts[BY_COUNTRY[code].status]++; });
+    $("legend").innerHTML = STATUSES.map(function (s) {
+      return '<span class="chip' + (active[s.key] ? "" : " off") + '" data-k="' + s.key + '">' +
+        '<span class="dot" style="background:' + s.color + '"></span>' + s.label +
+        ' <span class="cnt">' + counts[s.key] + "</span></span>";
+    }).join("");
+    Array.prototype.forEach.call($("legend").querySelectorAll(".chip"), function (el) {
+      el.addEventListener("click", function () {
+        var k = el.getAttribute("data-k");
+        active[k] = !active[k];
+        renderLegend();
+        applyColors();
+      });
+    });
+  }
+
+  /* ---------- TopoJSON decoding (no external library) ---------- */
+  function decodeArcs(topo) {
+    var scale = topo.transform ? topo.transform.scale : [1, 1];
+    var trans = topo.transform ? topo.transform.translate : [0, 0];
+    return topo.arcs.map(function (arc) {
+      var x = 0, y = 0;
+      return arc.map(function (p) {
+        x += p[0]; y += p[1];
+        return [x * scale[0] + trans[0], y * scale[1] + trans[1]];
+      });
+    });
+  }
+
+  function arcPoints(arcs, idx) {
+    if (idx >= 0) return arcs[idx];
+    var a = arcs[~idx];
+    return a.slice().reverse();
+  }
+
+  function ringCoords(arcs, ring) {
+    var out = [];
+    ring.forEach(function (idx, i) {
+      var pts = arcPoints(arcs, idx);
+      out = out.concat(i === 0 ? pts : pts.slice(1));
+    });
+    return out;
+  }
+
+  function polygons(arcs, geom) {
+    if (geom.type === "Polygon") return [geom.arcs.map(function (r) { return ringCoords(arcs, r); })];
+    if (geom.type === "MultiPolygon") {
+      return geom.arcs.map(function (poly) {
+        return poly.map(function (r) { return ringCoords(arcs, r); });
+      });
+    }
+    return [];
+  }
+
+  /* ---------- Natural Earth I projection ---------- */
+  function projectRaw(lon, lat) {
+    var l = lon * Math.PI / 180, p = lat * Math.PI / 180;
+    var p2 = p * p, p4 = p2 * p2;
+    return [
+      l * (0.8707 - 0.131979 * p2 + p4 * (-0.013791 + p4 * (0.003971 * p2 - 0.001529 * p4))),
+      p * (1.007226 + p2 * (0.015085 + p4 * (-0.044475 + 0.028874 * p2 - 0.005916 * p4)))
+    ];
+  }
+
+  var W = 1000, H = 520, K = 1, OX = 0, OY = 0;
+  function fit() {
+    var xs = [], ys = [];
+    for (var lon = -180; lon <= 180; lon += 5) {
+      for (var lat = -90; lat <= 90; lat += 5) {
+        var q = projectRaw(lon, lat); xs.push(q[0]); ys.push(q[1]);
+      }
+    }
+    var x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
+    var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+    var pad = 8;
+    K = Math.min((W - pad * 2) / (x1 - x0), (H - pad * 2) / (y1 - y0));
+    OX = (W - (x1 + x0) * K) / 2;
+    OY = (H + (y1 + y0) * K) / 2;
+  }
+
+  function proj(lon, lat) {
+    var q = projectRaw(lon, lat);
+    return [q[0] * K + OX, OY - q[1] * K];
+  }
+
+  function pathOf(polys) {
+    var d = "";
+    polys.forEach(function (rings) {
+      rings.forEach(function (ring) {
+        var seg = [], prevLon = null;
+        function flush() {
+          /* Fewer than 3 points cannot enclose an area, so dropping those avoids
+             leaving stray dots and hairline slivers at the cut. */
+          if (seg.length >= 3) d += "M" + seg.join("L") + "Z";
+          seg = [];
+        }
+        for (var i = 0; i < ring.length; i++) {
+          var lon = ring[i][0];
+          /* A longitude jump larger than 180 degrees means this ring wraps across
+             the antimeridian. Drawn as-is, the shape races straight back across the
+             whole map as a horizontal smear (this is what Russia's Chukotka tip did).
+             Cutting the subpath at the crossing keeps each side where it belongs. */
+          if (prevLon !== null && Math.abs(lon - prevLon) > 180) flush();
+          var p = proj(lon, ring[i][1]);
+          seg.push(p[0].toFixed(1) + " " + p[1].toFixed(1));
+          prevLon = lon;
+        }
+        flush();
+      });
+    });
+    return d;
+  }
+
+  /* Natural Earth folds overseas territories into the parent country's geometry.
+     France's polygon therefore includes French Guiana in South America, which would
+     light up a whole other continent because of a trip to Paris. Keep only the
+     pieces inside the box that matches how the country reads on a travel map. */
+  var KEEP_BOX = {
+    "250": { minLon: -20, maxLon: 40, minLat: 20, maxLat: 75 }
+  };
+
+  function trimPolys(code, polys) {
+    var box = KEEP_BOX[code];
+    if (!box) return polys;
+    var kept = polys.filter(function (rings) {
+      var outer = rings[0];
+      if (!outer || !outer.length) return false;
+      var lon = 0, lat = 0;
+      outer.forEach(function (pt) { lon += pt[0]; lat += pt[1]; });
+      lon /= outer.length; lat /= outer.length;
+      return lon >= box.minLon && lon <= box.maxLon && lat >= box.minLat && lat <= box.maxLat;
+    });
+    return kept.length ? kept : polys;
+  }
+
+  /* ---------- Rendering ---------- */
+  var svg, gRoot, view = { x: 0, y: 0, k: 1 };
+
+  function applyColors() {
+    if (!svg) return;
+    Array.prototype.forEach.call(svg.querySelectorAll("path.country"), function (p) {
+      var code = p.getAttribute("data-code");
+      var e = BY_COUNTRY[code];
+      p.classList.remove("dim");
+      p.classList.remove("vis");
+      if (e && active[e.status]) {
+        p.style.fill = COLOR[e.status];
+        if (e.status === "Visited") p.classList.add("vis");
+      } else if (e) {
+        p.style.fill = "";
+        p.classList.add("dim");
+      } else {
+        p.style.fill = "";
+      }
+    });
+    Array.prototype.forEach.call(svg.querySelectorAll("circle.marker"), function (c) {
+      var e = BY_COUNTRY[c.getAttribute("data-code")];
+      var on = e && active[e.status];
+      c.style.fill = on ? COLOR[e.status] : "#d8d5d0";
+      c.style.opacity = on ? 1 : 0.45;
+    });
+  }
+
+  function updateTransform() {
+    gRoot.setAttribute("transform", "translate(" + view.x + " " + view.y + ") scale(" + view.k + ")");
+  }
+
+  function showTip(evt, code, fallbackName) {
+    var e = BY_COUNTRY[code];
+    var name = fallbackName || "";
+    var html = '<div class="cname">' + name + "</div>";
+    if (e) {
+      html += e.dests.map(function (d) {
+        return '<div class="row"><span class="sq" style="background:' + COLOR[d.status] + '"></span>' +
+          "<span>" + d.name + ' <span class="bud">· ' + d.budget + "</span></span></div>";
+      }).join("");
+    } else {
+      html += '<div class="none">Not on the list yet</div>';
+    }
+    tip.innerHTML = html;
+    var r = mapwrap.getBoundingClientRect();
+    tip.style.left = (evt.clientX - r.left) + "px";
+    tip.style.top = (evt.clientY - r.top) + "px";
+    tip.classList.add("on");
+  }
+  function hideTip() { tip.classList.remove("on"); }
+
+  function selectCountry(code, name) {
+    if (selected === code) { selected = null; panel.classList.remove("on"); paintSel(); return; }
+    selected = code;
+    var e = BY_COUNTRY[code];
+    var html = '<span class="close" id="pclose">close ✕</span><h3>' + name + "</h3>";
+    if (e) {
+      html += "<ul>" + e.dests.map(function (d) {
+        return "<li><b>" + d.name + "</b> — " + d.status + " · " + d.budget + "</li>";
+      }).join("") + "</ul>";
+    } else {
+      html += '<div class="hint">Nothing on the bucket list here yet.</div>';
+    }
+    panel.innerHTML = html;
+    panel.classList.add("on");
+    var pc = $("pclose");
+    if (pc) pc.addEventListener("click", function () { selected = null; panel.classList.remove("on"); paintSel(); });
+    paintSel();
+  }
+
+  function paintSel() {
+    Array.prototype.forEach.call(svg.querySelectorAll(".country, .marker"), function (p) {
+      if (selected && p.getAttribute("data-code") === selected) p.classList.add("sel");
+      else p.classList.remove("sel");
+    });
+  }
+
+  function build(topo) {
+    var arcs = decodeArcs(topo);
+    var geoms = topo.objects.countries.geometries;
+    fit();
+
+    var NS = "http://www.w3.org/2000/svg";
+    svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+    gRoot = document.createElementNS(NS, "g");
+    svg.appendChild(gRoot);
+
+    /* graticule */
+    var gGrat = document.createElementNS(NS, "g");
+    var gd = "";
+    for (var lon = -180; lon <= 180; lon += 30) {
+      for (var lat = -90; lat <= 90; lat += 2) {
+        var p = proj(lon, lat);
+        gd += (lat === -90 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1);
+      }
+    }
+    for (var lat2 = -60; lat2 <= 60; lat2 += 30) {
+      for (var lon2 = -180; lon2 <= 180; lon2 += 2) {
+        var p2 = proj(lon2, lat2);
+        gd += (lon2 === -180 ? "M" : "L") + p2[0].toFixed(1) + " " + p2[1].toFixed(1);
+      }
+    }
+    var grat = document.createElementNS(NS, "path");
+    grat.setAttribute("d", gd);
+    grat.setAttribute("class", "graticule");
+    gGrat.appendChild(grat);
+    gRoot.appendChild(gGrat);
+
+    /* countries */
+    var gC = document.createElementNS(NS, "g");
+    geoms.forEach(function (geom) {
+      var code = String(parseInt(geom.id, 10));
+      var name = (geom.properties && geom.properties.name) || "Unknown";
+      var d = pathOf(trimPolys(code, polygons(arcs, geom)));
+      if (!d) return;
+      var path = document.createElementNS(NS, "path");
+      path.setAttribute("d", d);
+      path.setAttribute("class", "country" + (BY_COUNTRY[code] ? " has" : ""));
+      path.setAttribute("data-code", code);
+      path.setAttribute("data-name", name);
+      path.addEventListener("mousemove", function (ev) { showTip(ev, code, name); });
+      path.addEventListener("mouseleave", hideTip);
+      path.addEventListener("click", function (ev) { ev.stopPropagation(); selectCountry(code, name); });
+      gC.appendChild(path);
+    });
+    gRoot.appendChild(gC);
+
+    /* dot markers for micro-states */
+    var gM = document.createElementNS(NS, "g");
+    Object.keys(DOTS).forEach(function (code) {
+      if (!BY_COUNTRY[code]) return;
+      var ll = DOTS[code], p = proj(ll[0], ll[1]);
+      var nm = DOT_NAMES[code] || "";
+      var c = document.createElementNS(NS, "circle");
+      c.setAttribute("cx", p[0].toFixed(1));
+      c.setAttribute("cy", p[1].toFixed(1));
+      c.setAttribute("r", "4.2");
+      c.setAttribute("class", "marker");
+      c.setAttribute("data-code", code);
+      c.addEventListener("mousemove", function (ev) { showTip(ev, code, nm); });
+      c.addEventListener("mouseleave", hideTip);
+      c.addEventListener("click", function (ev) { ev.stopPropagation(); selectCountry(code, nm); });
+      gM.appendChild(c);
+    });
+    gRoot.appendChild(gM);
+
+    msg.style.display = "none";
+    mapwrap.insertBefore(svg, tip);
+    updateTransform();
+    applyColors();
+
+    /* zoom + pan */
+    svg.addEventListener("wheel", function (ev) {
+      ev.preventDefault();
+      var r = svg.getBoundingClientRect();
+      var mx = (ev.clientX - r.left) / r.width * W;
+      var my = (ev.clientY - r.top) / r.height * H;
+      var f = ev.deltaY < 0 ? 1.14 : 1 / 1.14;
+      var nk = Math.max(1, Math.min(9, view.k * f));
+      f = nk / view.k;
+      view.x = mx - (mx - view.x) * f;
+      view.y = my - (my - view.y) * f;
+      view.k = nk;
+      clampView();
+      updateTransform();
+    }, { passive: false });
+
+    var drag = null;
+    svg.addEventListener("pointerdown", function (ev) {
+      drag = { x: ev.clientX, y: ev.clientY, vx: view.x, vy: view.y };
+      svg.classList.add("dragging");
+      svg.setPointerCapture(ev.pointerId);
+    });
+    svg.addEventListener("pointermove", function (ev) {
+      if (!drag) return;
+      var r = svg.getBoundingClientRect();
+      view.x = drag.vx + (ev.clientX - drag.x) * (W / r.width);
+      view.y = drag.vy + (ev.clientY - drag.y) * (H / r.height);
+      clampView();
+      updateTransform();
+      hideTip();
+    });
+    function endDrag() { drag = null; svg.classList.remove("dragging"); }
+    svg.addEventListener("pointerup", endDrag);
+    svg.addEventListener("pointercancel", endDrag);
+    svg.addEventListener("click", function () { /* background click clears */ });
+
+    $("reset").addEventListener("click", function () {
+      view = { x: 0, y: 0, k: 1 };
+      updateTransform();
+    });
+  }
+
+  function clampView() {
+    var maxX = 0, maxY = 0;
+    var minX = W - W * view.k, minY = H - H * view.k;
+    view.x = Math.min(maxX, Math.max(minX, view.x));
+    view.y = Math.min(maxY, Math.max(minY, view.y));
+  }
+
+  /* ---------- Load geometry ---------- */
+  var SOURCES = [
+    "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json",
+    "https://unpkg.com/world-atlas@2/countries-110m.json",
+    "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json"
+  ];
+
+  function load(i) {
+    if (i >= SOURCES.length) {
+      msg.innerHTML = "<b>Couldn't load the map geometry.</b><br>" +
+        "The country outlines come from a public map library, and the network request was blocked.<br>" +
+        "Your data is fine — " + Object.keys(BY_COUNTRY).length + " countries across " + DESTS.length + " destinations.";
+      return;
+    }
+    fetch(SOURCES[i], { mode: "cors" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (topo) {
+        if (!topo || !topo.objects || !topo.objects.countries) throw new Error("bad topology");
+        build(topo);
+      })
+      .catch(function () { load(i + 1); });
+  }
+
+  /* ---------- Live data ----------
+     data.json is rewritten straight from the Notion database by the Travel Map Sync
+     agent whenever a destination changes. This page just reads it. */
+  var built = false;
+
+  var stale = false;
+
+  /* Where the data we are showing actually came from. A CDN mirror can serve a
+     copy that is hours old, so calling that "live from Notion" would be a lie. */
+  var srcKind = "live"; /* "live" | "cached" | "offline" */
+  var lastChecked = null;
+  var newestSeen = 0;
+
+  function stamp(iso) {
+    var el = $("stamp");
+    if (!el || !iso) return;
+    var d = new Date(iso);
+    if (isNaN(d)) return;
+    var label = srcKind === "offline" ? "offline copy from "
+      : srcKind === "cached" ? "cached copy from "
+      : srcKind === "mirror" ? "live via mirror, "
+      : "live from Notion, ";
+    var txt = " · " + label +
+      d.toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    if (lastChecked) {
+      txt += " · checked " +
+        lastChecked.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    }
+    el.textContent = txt;
+    el.style.cursor = "help";
+    el.title = DIAG.length
+      ? "Primary source unavailable:\n" + DIAG.join("\n")
+      : "Loaded from data.json on this same site (no cache, no proxy).";
+    try { window.__mapDiag = { source: srcKind, notes: DIAG.slice(), dataTime: iso }; } catch (ignored) {}
+  }
+
+  function applyData(j) {
+    DESTS = (j.destinations || []).filter(function (d) {
+      /* Drafts awaiting review stay off the map. Approving one flips it to "Want to go",
+         which is when it earns its place here. */
+      return d.status !== "In Review" && d.c && d.c.length;
+    });
+    indexData();
+    renderStats();
+    renderLegend();
+    stamp(j.generatedAt);
+    if (!built) {
+      built = true;
+      load(0);
+    } else {
+      applyColors();
+    }
+  }
+
+  /* Live data lives in GitHub, written by the Travel Map Sync agent. The first URL
+     is the source of truth; the second is a mirror and may lag, so it is labelled
+     differently when used. */
+  var DATA_URLS = [
+    "data.json",
+    "https://cdn.jsdelivr.net/gh/benhoch-dev/notion-travel-bucket-list@main/data.json"
+  ];
+
+  /* How truthful the footer may be about each source, index-aligned with
+     DATA_URLS. "live" = served by GitHub itself. "mirror" = a proxy that
+     fetches from GitHub on demand with a short cache, so near-current but
+     not guaranteed. "cached" = jsDelivr, which pins a branch for hours. */
+  var SOURCE_KINDS = ["live", "cached"];
+
+  /* Last known good data, baked in when this file was generated. Used only if the
+     network request fails, so the map degrades to slightly stale instead of empty. */
+  var FALLBACK = {"generatedAt": "2026-09-05T22:25:00Z", "source": "fallback", "unmapped": [], "destinations": [{"name": "Egypt", "status": "Want to go", "budget": "$$$", "c": [818], "continent": "Africa"}, {"name": "Lisbon", "status": "Want to go", "budget": "$$", "c": [620], "continent": "Europe"}, {"name": "Namibia", "status": "Want to go", "budget": "$$$$", "c": [516], "continent": "Africa"}, {"name": "Cape Town", "status": "Want to go", "budget": "$$$", "c": [710], "continent": "Africa"}, {"name": "Madrid", "status": "In Planning", "budget": "$", "c": [724], "continent": "Europe"}, {"name": "Berlin", "status": "Visited", "budget": "$", "c": [276], "continent": "Europe"}, {"name": "New Zealand", "status": "Want to go", "budget": "$$$$", "c": [554], "continent": "Australia"}, {"name": "Singapore", "status": "Want to go", "budget": "$$$", "c": [702], "continent": "Asia"}, {"name": "Dubrovnik & Split", "status": "Want to go", "budget": "$$", "c": [191], "continent": "Europe"}, {"name": "Budapest & Prague", "status": "Want to go", "budget": "$$", "c": [348, 203], "continent": "Europe"}, {"name": "Petra, Jordan", "status": "Want to go", "budget": "$$", "c": [400], "continent": "Asia"}, {"name": "Patagonia", "status": "Want to go", "budget": "$$$$", "c": [32, 152], "continent": "South America"}, {"name": "Australia", "status": "Want to go", "budget": "$$$$", "c": [36], "continent": "Australia"}, {"name": "London", "status": "Visited", "budget": "$$", "c": [826], "continent": "Europe"}, {"name": "Morocco", "status": "Want to go", "budget": "$$", "c": [504], "continent": "Africa"}, {"name": "Barcelona", "status": "Want to go", "budget": "$$", "c": [724], "continent": "Europe"}, {"name": "Ireland", "status": "Visited", "budget": "$$", "c": [372], "continent": "Europe"}, {"name": "New York City", "status": "Want to go", "budget": "$$$", "c": [840], "continent": "North & Central America"}, {"name": "Japan", "status": "Want to go", "budget": "$$$$", "c": [392], "continent": "Asia"}, {"name": "South Korea", "status": "Want to go", "budget": "$$$", "c": [410], "continent": "Asia"}, {"name": "Iceland", "status": "Want to go", "budget": "$$$", "c": [352], "continent": "Europe"}, {"name": "Backpack South East Asia", "status": "Want to go", "budget": "$$$", "c": [704, 116, 764], "continent": "Asia"}, {"name": "Machu Picchu", "status": "Want to go", "budget": "$$$", "c": [604], "continent": "South America"}, {"name": "Dubai", "status": "Visited", "budget": "$$$", "c": [784], "continent": "Asia"}, {"name": "Greece", "status": "Want to go", "budget": "$$", "c": [300], "continent": "Europe"}, {"name": "Hong Kong", "status": "Want to go", "budget": "$$$", "c": [344], "continent": "Asia"}, {"name": "Rome", "status": "Want to go", "budget": "$$", "c": [380], "continent": "Europe"}, {"name": "Dolomites", "status": "Want to go", "budget": "$$", "c": [380], "continent": "Europe"}, {"name": "Amsterdam", "status": "Want to go", "budget": "$$", "c": [528], "continent": "Europe"}, {"name": "Cinque Terre & Florence", "status": "Visited", "budget": "$$", "c": [380], "continent": "Europe"}, {"name": "Great Wall of China", "status": "Want to go", "budget": "$$$", "c": [156], "continent": "Asia"}, {"name": "Maldives", "status": "Want to go", "budget": "$$$$", "c": [462], "continent": "Asia"}, {"name": "Paris", "status": "Want to go", "budget": "$$", "c": [250], "continent": "Europe"}, {"name": "Himalayas", "status": "Want to go", "budget": "$$$", "c": [524], "continent": "Asia"}, {"name": "Chicago", "status": "Want to go", "budget": "$$$", "c": [840], "continent": "North & Central America"}]};
+
+  /* Why each source was skipped on the most recent attempt. Without this a silent
+     downgrade to the mirror can only be guessed at. */
+  var DIAG = [];
+
+  function hostOf(u) {
+    try { return new URL(u).host; } catch (e) { return u; }
+  }
+
+  function fetchOne(i) {
+    if (i >= DATA_URLS.length) return Promise.reject(new Error("no source reachable"));
+    var url = DATA_URLS[i];
+    return fetch(url + "?ts=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (d) {
+        if (!d || !d.destinations || !d.destinations.length) throw new Error("empty payload");
+        return { data: d, idx: i };
+      })
+      .catch(function (e) {
+        var why = e && e.message ? e.message : "request blocked";
+        if (e && e.name) why = e.name + ": " + why;
+        DIAG.push(hostOf(url) + " → " + why);
+        try { console.warn("[travel map] source failed:", url, e); } catch (ignored) {}
+        return fetchOne(i + 1);
+      });
+  }
+
+  function fetchData(isRetry) {
+    DIAG = [];
+    return fetchOne(0)
+      .then(function (res) {
+        lastChecked = new Date();
+        var t = Date.parse(res.data.generatedAt || "") || 0;
+        /* A CDN mirror can hand back a copy older than one we have already shown.
+           Ignore it rather than letting the map travel backwards in time. */
+        if (built && t && newestSeen && t < newestSeen) {
+          stamp(new Date(newestSeen).toISOString());
+          return;
+        }
+        if (t) newestSeen = t;
+        stale = false;
+        srcKind = SOURCE_KINDS[res.idx] || "cached";
+        applyData(res.data);
+      })
+      .catch(function () {
+        lastChecked = new Date();
+        if (built) {
+          if (newestSeen) stamp(new Date(newestSeen).toISOString());
+          return;
+        }
+        if (!isRetry) {
+          setTimeout(function () { fetchData(true); }, 4000);
+          return;
+        }
+        stale = true;
+        srcKind = "offline";
+        applyData(FALLBACK);
+        stamp(FALLBACK.generatedAt);
+      });
+  }
+
+  fetchData(false);
+
+  /* Pick up new data without anyone touching this page. Zoom and selection survive. */
+  setInterval(function () { fetchData(false); }, 20000);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) fetchData(false);
+  });
+})();
+</script>
+</body>
+</html>
