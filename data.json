@@ -1,9 +1,8 @@
 {
- "generatedAt": "2026-09-06T14:41:00Z",
+ "generatedAt": "2026-09-06T14:44:00Z",
  "source": "notion",
  "unmapped": [],
  "destinations": [
-  { "name": "Lisbon", "status": "Want to go", "budget": "$$", "c": [620], "continent": "Europe" },
   { "name": "Namibia", "status": "Want to go", "budget": "$$$$", "c": [516], "continent": "Africa" },
   { "name": "Cape Town", "status": "Want to go", "budget": "$$$", "c": [710], "continent": "Africa" },
   { "name": "Madrid", "status": "In Planning", "budget": "$", "c": [724], "continent": "Europe" },
@@ -18,7 +17,6 @@
   { "name": "Barcelona", "status": "Want to go", "budget": "$$", "c": [724], "continent": "Europe" },
   { "name": "Ireland", "status": "Visited", "budget": "$$", "c": [372], "continent": "Europe" },
   { "name": "Japan", "status": "Want to go", "budget": "$$$$", "c": [392], "continent": "Asia" },
-  { "name": "South Korea", "status": "Want to go", "budget": "$$$", "c": [410], "continent": "Asia" },
   { "name": "Iceland", "status": "Want to go", "budget": "$$$", "c": [352], "continent": "Europe" },
   { "name": "Backpack South East Asia", "status": "Want to go", "budget": "$$$", "c": [704, 116, 764], "continent": "Asia" },
   { "name": "Dubai", "status": "Visited", "budget": "$$$", "c": [784], "continent": "Asia" },
