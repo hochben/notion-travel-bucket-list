@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-09-06T09:47:12Z",
+ "generatedAt": "2026-09-06T09:48:14Z",
  "source": "notion",
  "unmapped": [],
  "destinations": [
@@ -8,8 +8,8 @@
   { "name": "London", "status": "Visited", "budget": "$$", "c": [826], "continent": "Europe" },
   { "name": "Dubai", "status": "Visited", "budget": "$$$", "c": [784], "continent": "Asia" },
   { "name": "Cinque Terre & Florence", "status": "Visited", "budget": "$$", "c": [380], "continent": "Europe" },
+  { "name": "Austria", "status": "Visited", "c": [40] },
   { "name": "Madrid", "status": "In Planning", "budget": "$", "c": [724], "continent": "Europe" },
-  { "name": "Austria", "status": "Want to go", "c": [40] },
   { "name": "Switzerland", "status": "Want to go", "c": [756] },
   { "name": "Maldives", "status": "Want to go", "budget": "$$$$", "c": [462], "continent": "Asia" },
   { "name": "Egypt", "status": "Want to go", "budget": "$$$", "c": [818], "continent": "Africa" },
