@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-09-06T14:53:41Z",
+ "generatedAt": "2026-09-06T16:53:55Z",
  "source": "notion",
  "unmapped": [],
  "destinations": [
@@ -15,18 +15,18 @@
   { "name": "Morocco", "status": "Want to go", "budget": "$$", "c": [504], "continent": "Africa" },
   { "name": "Barcelona", "status": "Want to go", "budget": "$$", "c": [724], "continent": "Europe" },
   { "name": "Ireland", "status": "Visited", "budget": "$$", "c": [372], "continent": "Europe" },
-  { "name": "Japan", "status": "Want to go", "budget": "$$$", "c": [392], "continent": "Asia" },
+  { "name": "🇯🇵 Japan", "status": "Want to go", "budget": "$$$", "c": [392], "continent": "Asia" },
   { "name": "Iceland", "status": "Want to go", "budget": "$$$", "c": [352], "continent": "Europe" },
   { "name": "Backpack South East Asia", "status": "Want to go", "budget": "$$$", "c": [704, 116, 764], "continent": "Asia" },
   { "name": "Dubai", "status": "Visited", "budget": "$$$", "c": [784], "continent": "Asia" },
   { "name": "Hong Kong", "status": "Want to go", "budget": "$$$", "c": [344], "continent": "Asia" },
   { "name": "Rome", "status": "Want to go", "budget": "$$", "c": [380], "continent": "Europe" },
-  { "name": "Dolomites", "status": "Want to go", "budget": "$$", "c": [380], "continent": "Europe" },
-  { "name": "Amsterdam", "status": "Want to go", "budget": "$$", "c": [528], "continent": "Europe" },
+  { "name": "🇮🇹 Dolomites", "status": "Want to go", "budget": "$$", "c": [380], "continent": "Europe" },
+  { "name": "🇳🇱 Amsterdam", "status": "Want to go", "budget": "$$", "c": [528], "continent": "Europe" },
   { "name": "Cinque Terre & Florence", "status": "Visited", "budget": "$$", "c": [380], "continent": "Europe" },
   { "name": "Great Wall of China", "status": "Want to go", "budget": "$$", "c": [156], "continent": "Asia" },
   { "name": "Paris", "status": "Want to go", "budget": "$$", "c": [250], "continent": "Europe" },
-  { "name": "Himalayas", "status": "Want to go", "budget": "$$$", "c": [524], "continent": "Asia" },
+  { "name": "🇳🇵 Himalayas", "status": "Want to go", "budget": "$$$", "c": [524], "continent": "Asia" },
   { "name": "Switzerland", "status": "Visited", "c": [756] },
   { "name": "Austria", "status": "Visited", "c": [40] }
  ]
